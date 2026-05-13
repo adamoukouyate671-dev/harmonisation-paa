@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import pickle
 import re
+import io
 from rapidfuzz import fuzz
 from sklearn.feature_extraction.text import TfidfVectorizer
 from unidecode import unidecode
@@ -195,6 +196,13 @@ def detecter_nouveaux_clients(descriptions, seuil_apparitions=5):
     return nouveaux
 
 
+def convertir_excel(df):
+    buffer = io.BytesIO()
+    df.to_excel(buffer, index=False)
+    buffer.seek(0)
+    return buffer
+
+
 # ============================================================
 # INTERFACE
 # ============================================================
@@ -265,7 +273,6 @@ with tab2:
         else:
             st.success(f"✅ Fichier chargé : {len(df_charge)} lignes détectées")
 
-            # Choix du nombre de lignes
             st.markdown("#### Choisissez le nombre de lignes à traiter :")
 
             col1, col2, col3, col4 = st.columns(4)
@@ -317,13 +324,12 @@ with tab2:
                 st.markdown("#### Aperçu du résultat :")
                 st.dataframe(df_resultat.head(10))
 
-                # Télécharger
-                output = df_resultat.to_excel(index=False)
+                # ── TÉLÉCHARGER EN EXCEL ──
                 st.download_button(
-                    label="📥 Télécharger le fichier harmonisé",
-                    data=df_resultat.to_csv(index=False).encode('utf-8'),
-                    file_name="fichier_harmonise.csv",
-                    mime="text/csv"
+                    label="📥 Télécharger le fichier harmonisé (.xlsx)",
+                    data=convertir_excel(df_resultat),
+                    file_name="fichier_harmonise.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
 
 
@@ -366,10 +372,10 @@ with tab3:
                     df_nouveaux_result = pd.DataFrame(nouveaux)
                     st.dataframe(df_nouveaux_result)
 
+                    # ── TÉLÉCHARGER EN EXCEL ──
                     st.download_button(
-                        label="📥 Télécharger les nouveaux clients",
-                        data=df_nouveaux_result.to_csv(
-                            index=False).encode('utf-8'),
-                        file_name="nouveaux_clients.csv",
-                        mime="text/csv"
+                        label="📥 Télécharger les nouveaux clients (.xlsx)",
+                        data=convertir_excel(df_nouveaux_result),
+                        file_name="nouveaux_clients.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     )
