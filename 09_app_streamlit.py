@@ -8,25 +8,17 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from unidecode import unidecode
 from collections import Counter
 
-# ============================================================
-# CONFIGURATION DE LA PAGE
-# ============================================================
 st.set_page_config(
     page_title="Harmonisation PAA",
     page_icon="⚓",
     layout="wide"
 )
 
-# ============================================================
-# STYLES CSS
-# ============================================================
 st.markdown("""
     <style>
     .main { background-color: #0a0a0a; }
     .stApp { background-color: #0a0a0a; }
-
     h1, h2, h3 { color: #ffffff; }
-
     .titre {
         background-color: #1a1a1a;
         padding: 20px;
@@ -35,18 +27,8 @@ st.markdown("""
         text-align: center;
         margin-bottom: 20px;
     }
-
-    .titre h1 {
-        color: #ffffff;
-        font-size: 28px;
-        margin: 0;
-    }
-
-    .titre p {
-        color: #ff1a1a;
-        margin: 5px 0 0 0;
-    }
-
+    .titre h1 { color: #ffffff; font-size: 28px; margin: 0; }
+    .titre p { color: #ff1a1a; margin: 5px 0 0 0; }
     .resultat {
         background-color: #1a1a1a;
         padding: 20px;
@@ -54,17 +36,8 @@ st.markdown("""
         border-radius: 5px;
         margin-top: 15px;
     }
-
-    .resultat h3 {
-        color: #ffdd00;
-        margin: 0;
-    }
-
-    .resultat p {
-        color: #cccccc;
-        margin: 5px 0 0 0;
-    }
-
+    .resultat h3 { color: #ffdd00; margin: 0; }
+    .resultat p { color: #cccccc; margin: 5px 0 0 0; }
     .stButton button {
         background-color: #ff1a1a;
         color: white;
@@ -73,17 +46,12 @@ st.markdown("""
         font-weight: bold;
         padding: 10px 20px;
     }
-
-    .stButton button:hover {
-        background-color: #ff4d4d;
-    }
-
+    .stButton button:hover { background-color: #ff4d4d; }
     .stTabs [data-baseweb="tab"] {
         background-color: #1a1a1a;
         color: white;
         border-radius: 5px 5px 0 0;
     }
-
     .stTabs [aria-selected="true"] {
         background-color: #ff1a1a !important;
         color: white !important;
@@ -93,7 +61,7 @@ st.markdown("""
 
 
 # ============================================================
-# CHARGEMENT DU MODELE (une seule fois)
+# CHARGEMENT DU MODELE
 # ============================================================
 @st.cache_resource
 def charger_modele():
@@ -159,7 +127,6 @@ def harmoniser_nom(nom_inconnu, seuil=70):
     nom_clean = nettoyer_nom(nom_inconnu)
     meilleur_officiel = None
     meilleure_proba = 0
-
     for nom_ref in noms_officiels_list:
         score_rapide = fuzz.token_set_ratio(nom_clean, nom_ref)
         if score_rapide > seuil:
@@ -169,10 +136,8 @@ def harmoniser_nom(nom_inconnu, seuil=70):
                 meilleure_proba = proba
                 mask = noms_officiels['nom_clean'] == nom_ref
                 meilleur_officiel = noms_officiels[mask]['Nom_chargeurs'].values[0]
-
     if meilleur_officiel is None:
         return nom_inconnu, 0.0
-
     return meilleur_officiel, round(meilleure_proba * 100, 2)
 
 
@@ -183,8 +148,7 @@ def detecter_nouveaux_clients(descriptions, seuil_apparitions=5):
     for nom, count in compteur.items():
         if count >= seuil_apparitions:
             meilleur_score = max(
-                [fuzz.token_set_ratio(nom, ref)
-                 for ref in noms_officiels_list[:500]],
+                [fuzz.token_set_ratio(nom, ref) for ref in noms_officiels_list[:500]],
                 default=0
             )
             if meilleur_score < 70:
@@ -206,8 +170,6 @@ def convertir_excel(df):
 # ============================================================
 # INTERFACE
 # ============================================================
-
-# TITRE
 st.markdown("""
     <div class="titre">
         <h1>⚓ PORT AUTONOME D'ABIDJAN</h1>
@@ -215,7 +177,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# ONGLETS
 tab1, tab2, tab3 = st.tabs([
     "🔤  Nom par nom",
     "📂  Fichier Excel",
@@ -241,14 +202,12 @@ with tab1:
         else:
             with st.spinner("Recherche en cours..."):
                 nom_harmonise, confiance = harmoniser_nom(nom_saisi)
-
             st.markdown(f"""
                 <div class="resultat">
                     <h3>✅ {nom_harmonise}</h3>
                     <p>Confiance : {confiance}%</p>
                 </div>
             """, unsafe_allow_html=True)
-
             st.success(f"'{nom_saisi}'  →  '{nom_harmonise}'  ({confiance}%)")
 
 
@@ -260,6 +219,14 @@ with tab2:
     st.markdown("Le fichier doit contenir une colonne **Descriptions**")
     st.markdown("---")
 
+    # Initialiser session state
+    if 'nb_lignes_choisi' not in st.session_state:
+        st.session_state.nb_lignes_choisi = 100
+    if 'df_charge' not in st.session_state:
+        st.session_state.df_charge = None
+    if 'df_resultat' not in st.session_state:
+        st.session_state.df_resultat = None
+
     fichier = st.file_uploader(
         "Chargez votre fichier Excel",
         type=["xlsx", "xls"]
@@ -267,39 +234,58 @@ with tab2:
 
     if fichier:
         df_charge = pd.read_excel(fichier)
+        st.session_state.df_charge = df_charge
 
         if 'Descriptions' not in df_charge.columns:
             st.error("❌ Le fichier doit contenir une colonne 'Descriptions' !")
         else:
-            st.success(f"✅ Fichier chargé : {len(df_charge)} lignes détectées")
+            total_lignes = len(df_charge)
+            st.success(f"✅ Fichier chargé : {total_lignes} lignes détectées")
 
             st.markdown("#### Choisissez le nombre de lignes à traiter :")
 
-            col1, col2, col3, col4 = st.columns(4)
+            # Boutons de sélection rapide
+            col1, col2, col3, col4, col5 = st.columns(5)
 
             with col1:
-                if st.button("100 lignes"):
-                    st.session_state.nb_lignes = 100
-            with col2:
-                if st.button("500 lignes"):
-                    st.session_state.nb_lignes = 500
-            with col3:
-                if st.button("1000 lignes"):
-                    st.session_state.nb_lignes = 1000
-            with col4:
-                if st.button("⚡ Toutes les lignes"):
-                    st.session_state.nb_lignes = len(df_charge)
+                if st.button("100 lignes", key="b100"):
+                    st.session_state.nb_lignes_choisi = min(100, total_lignes)
 
-            nb_lignes = st.number_input(
-                "Ou entrez un nombre personnalisé :",
+            with col2:
+                if st.button("500 lignes", key="b500"):
+                    st.session_state.nb_lignes_choisi = min(500, total_lignes)
+
+            with col3:
+                if st.button("1000 lignes", key="b1000"):
+                    st.session_state.nb_lignes_choisi = min(1000, total_lignes)
+
+            with col4:
+                if st.button("5000 lignes", key="b5000"):
+                    st.session_state.nb_lignes_choisi = min(5000, total_lignes)
+
+            with col5:
+                if st.button("⚡ Toutes", key="btoutes"):
+                    st.session_state.nb_lignes_choisi = total_lignes
+
+            # Slider pour choisir précisément
+            nb_lignes = st.slider(
+                "Ou ajustez avec le curseur :",
                 min_value=1,
-                max_value=len(df_charge),
-                value=min(100, len(df_charge))
+                max_value=total_lignes,
+                value=st.session_state.nb_lignes_choisi,
+                key="slider_lignes"
             )
 
-            st.info(f"📊 {nb_lignes} lignes seront traitées")
+            # Synchroniser session state avec slider
+            st.session_state.nb_lignes_choisi = nb_lignes
 
-            if st.button("⚡ HARMONISER", key="btn_fichier"):
+            st.info(f"📊 **{nb_lignes} lignes** seront traitées sur {total_lignes}")
+
+            if nb_lignes > 500:
+                st.warning(f"⚠️ {nb_lignes} lignes peut prendre plusieurs minutes. Soyez patient !")
+
+            # Bouton Harmoniser
+            if st.button("⚡ HARMONISER LE FICHIER", key="btn_fichier"):
                 df_traiter = df_charge.head(nb_lignes)
                 descriptions = df_traiter['Descriptions'].tolist()
                 total = len(descriptions)
@@ -316,20 +302,22 @@ with tab2:
                     })
                     progression = int((i + 1) / total * 100)
                     barre.progress(progression)
-                    texte.text(f"Progression : {i+1}/{total} ({progression}%)")
+                    texte.text(f"Traitement : {i+1}/{total} ({progression}%)")
 
-                df_resultat = pd.DataFrame(resultats)
-
+                st.session_state.df_resultat = pd.DataFrame(resultats)
                 st.success("✅ Harmonisation terminée !")
-                st.markdown("#### Aperçu du résultat :")
-                st.dataframe(df_resultat.head(10))
 
-                # ── TÉLÉCHARGER EN EXCEL ──
+            # Afficher résultats si disponibles
+            if st.session_state.df_resultat is not None:
+                st.markdown("#### Aperçu du résultat :")
+                st.dataframe(st.session_state.df_resultat.head(10))
+
                 st.download_button(
                     label="📥 Télécharger le fichier harmonisé (.xlsx)",
-                    data=convertir_excel(df_resultat),
+                    data=convertir_excel(st.session_state.df_resultat),
                     file_name="fichier_harmonise.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key="download_btn"
                 )
 
 
@@ -356,8 +344,7 @@ with tab3:
         if 'Descriptions' not in df_nouveaux.columns:
             st.error("❌ Le fichier doit contenir une colonne 'Descriptions' !")
         else:
-            st.success(
-                f"✅ Fichier chargé : {len(df_nouveaux)} lignes détectées")
+            st.success(f"✅ Fichier chargé : {len(df_nouveaux)} lignes détectées")
 
             if st.button("🔍 DÉTECTER LES NOUVEAUX CLIENTS"):
                 with st.spinner("Analyse en cours..."):
@@ -367,12 +354,10 @@ with tab3:
                 if not nouveaux:
                     st.success("✅ Aucun nouveau client détecté !")
                 else:
-                    st.error(
-                        f"🆕 {len(nouveaux)} nouveau(x) client(s) détecté(s) !")
+                    st.error(f"🆕 {len(nouveaux)} nouveau(x) client(s) détecté(s) !")
                     df_nouveaux_result = pd.DataFrame(nouveaux)
                     st.dataframe(df_nouveaux_result)
 
-                    # ── TÉLÉCHARGER EN EXCEL ──
                     st.download_button(
                         label="📥 Télécharger les nouveaux clients (.xlsx)",
                         data=convertir_excel(df_nouveaux_result),
