@@ -130,7 +130,7 @@ def harmoniser_nom(nom_inconnu, seuil=70):
             if proba > meilleure_proba:
                 meilleure_proba   = proba
                 mask              = noms_officiels['nom_clean'] == nom_ref
-                meilleur_officiel = noms_officiels[mask]['Nom_chargeurs'].values[0]
+                meilleur_officiel = noms_oficiels[mask]['Nom_chargeurs'].values[0]
 
     if meilleur_officiel is None:
         return nom_inconnu, 0.0
@@ -140,15 +140,15 @@ def harmoniser_nom(nom_inconnu, seuil=70):
 
 def niveau_confiance(confiance):
     if confiance >= 90:
-        return "Très élevé ✅"
+        return "Tres eleve"
     elif confiance >= 75:
-        return "Élevé 🟢"
+        return "Eleve"
     elif confiance >= 60:
-        return "Moyen 🟡"
+        return "Moyen"
     elif confiance > 0:
-        return "Faible 🔴"
+        return "Faible"
     else:
-        return "Non trouvé ❌"
+        return "Non trouve"
 
 
 def detecter_nouveaux_clients(descriptions, seuil_apparitions=5):
@@ -163,9 +163,9 @@ def detecter_nouveaux_clients(descriptions, seuil_apparitions=5):
             )
             if meilleur_score < 70:
                 nouveaux.append({
-                    'Nom détecté': nom,
+                    'Nom detecte': nom,
                     'Apparitions': count,
-                    'Statut'     : '🆕 Nouveau client potentiel'
+                    'Statut'     : 'Nouveau client potentiel'
                 })
     return nouveaux
 
@@ -177,36 +177,30 @@ def convertir_excel(df):
     return buffer
 
 
-# ============================================================
-# INTERFACE
-# ============================================================
 st.markdown("""
     <div class="titre">
-        <h1>⚓ PORT AUTONOME D'ABIDJAN</h1>
-        <p>Système Intelligent d'Harmonisation des Noms Clients</p>
+        <h1>PORT AUTONOME D'ABIDJAN</h1>
+        <p>Systeme Intelligent d'Harmonisation des Noms Clients</p>
     </div>
 """, unsafe_allow_html=True)
 
 tab1, tab2, tab3 = st.tabs([
-    "🔤  Nom par nom",
-    "📂  Fichier Excel",
-    "🆕  Nouveaux Clients"
+    "Nom par nom",
+    "Fichier Excel",
+    "Nouveaux Clients"
 ])
 
 
-# ══════════════════════════════════════════
-# ONGLET 1 : NOM PAR NOM
-# ══════════════════════════════════════════
 with tab1:
     st.markdown("### Harmonisation d'un nom")
     st.markdown("---")
 
     nom_saisi = st.text_input(
-        "Entrez le nom du client reçu :",
+        "Entrez le nom du client recu :",
         placeholder="Ex: 2CICS S.A, 1 2 3 DISTRIBUTION..."
     )
 
-    if st.button("🔍 HARMONISER", key="btn_nom"):
+    if st.button("HARMONISER", key="btn_nom"):
         if not nom_saisi:
             st.warning("Veuillez entrer un nom !")
         else:
@@ -216,16 +210,13 @@ with tab1:
 
             st.markdown(f"""
                 <div class="resultat">
-                    <h3>✅ {nom_harmonise}</h3>
-                    <p>Confiance : {confiance}% — {niveau}</p>
+                    <h3>{nom_harmonise}</h3>
+                    <p>Confiance : {confiance}% - {niveau}</p>
                 </div>
             """, unsafe_allow_html=True)
-            st.success(f"'{nom_saisi}'  →  '{nom_harmonise}'  ({confiance}% — {niveau})")
+            st.success(f"'{nom_saisi}' -> '{nom_harmonise}' ({confiance}% - {niveau})")
 
 
-# ══════════════════════════════════════════
-# ONGLET 2 : FICHIER EXCEL
-# ══════════════════════════════════════════
 with tab2:
     st.markdown("### Harmonisation d'un fichier Excel")
     st.markdown("Le fichier doit contenir une colonne **Descriptions**")
@@ -245,12 +236,12 @@ with tab2:
         df_charge = pd.read_excel(fichier)
 
         if 'Descriptions' not in df_charge.columns:
-            st.error("❌ Le fichier doit contenir une colonne 'Descriptions' !")
+            st.error("Le fichier doit contenir une colonne 'Descriptions' !")
         else:
             total_lignes = len(df_charge)
-            st.success(f"✅ Fichier chargé : {total_lignes} lignes détectées")
+            st.success(f"Fichier charge : {total_lignes} lignes detectees")
 
-            st.markdown("#### Choisissez le nombre de lignes à traiter :")
+            st.markdown("#### Choisissez le nombre de lignes a traiter :")
 
             col1, col2, col3, col4, col5 = st.columns(5)
             with col1:
@@ -266,7 +257,7 @@ with tab2:
                 if st.button("5000 lignes", key="b5000"):
                     st.session_state.nb_lignes_choisi = min(5000, total_lignes)
             with col5:
-                if st.button("⚡ Toutes", key="btoutes"):
+                if st.button("Toutes", key="btoutes"):
                     st.session_state.nb_lignes_choisi = total_lignes
 
             nb_lignes = st.slider(
@@ -277,12 +268,12 @@ with tab2:
                 key="slider_lignes"
             )
             st.session_state.nb_lignes_choisi = nb_lignes
-            st.info(f"📊 **{nb_lignes} lignes** seront traitées sur {total_lignes}")
+            st.info(f"{nb_lignes} lignes seront traitees sur {total_lignes}")
 
             if nb_lignes > 500:
-                st.warning(f"⚠️ {nb_lignes} lignes peut prendre plusieurs minutes.")
+                st.warning(f"{nb_lignes} lignes peut prendre plusieurs minutes.")
 
-            if st.button("⚡ HARMONISER LE FICHIER", key="btn_fichier"):
+            if st.button("HARMONISER LE FICHIER", key="btn_fichier"):
                 df_traiter   = df_charge.head(nb_lignes)
                 descriptions = df_traiter['Descriptions'].tolist()
                 total        = len(descriptions)
@@ -295,7 +286,7 @@ with tab2:
                     nom_harmonise, confiance = harmoniser_nom(str(nom))
                     resultats.append({
                         'Description originale': nom,
-                        'Nom harmonisé'        : nom_harmonise,
+                        'Nom harmonise'        : nom_harmonise,
                         'Confiance (%)'        : confiance,
                         'Niveau de confiance'  : niveau_confiance(confiance),
                     })
@@ -304,14 +295,14 @@ with tab2:
                     texte.text(f"Traitement : {i+1}/{total} ({progression}%)")
 
                 st.session_state.df_resultat = pd.DataFrame(resultats)
-                st.success("✅ Harmonisation terminée !")
+                st.success("Harmonisation terminee !")
 
             if st.session_state.df_resultat is not None:
-                st.markdown("#### Aperçu du résultat :")
+                st.markdown("#### Apercu du resultat :")
                 st.dataframe(st.session_state.df_resultat.head(10))
 
                 st.download_button(
-                    label="📥 Télécharger le fichier harmonisé (.xlsx)",
+                    label="Telecharger le fichier harmonise (.xlsx)",
                     data=convertir_excel(st.session_state.df_resultat),
                     file_name="fichier_harmonise.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -319,15 +310,9 @@ with tab2:
                 )
 
 
-# ══════════════════════════════════════════
-# ONGLET 3 : NOUVEAUX CLIENTS
-# ══════════════════════════════════════════
 with tab3:
-    st.markdown("### Détection des nouveaux clients")
-    st.markdown(
-        "Détecte les noms qui apparaissent **5 fois ou plus** "
-        "mais ne sont pas dans la base officielle"
-    )
+    st.markdown("### Detection des nouveaux clients")
+    st.markdown("Detecte les noms qui apparaissent 5 fois ou plus mais ne sont pas dans la base officielle")
     st.markdown("---")
 
     fichier3 = st.file_uploader(
@@ -340,24 +325,24 @@ with tab3:
         df_nouveaux = pd.read_excel(fichier3)
 
         if 'Descriptions' not in df_nouveaux.columns:
-            st.error("❌ Le fichier doit contenir une colonne 'Descriptions' !")
+            st.error("Le fichier doit contenir une colonne 'Descriptions' !")
         else:
-            st.success(f"✅ Fichier chargé : {len(df_nouveaux)} lignes détectées")
+            st.success(f"Fichier charge : {len(df_nouveaux)} lignes detectees")
 
-            if st.button("🔍 DÉTECTER LES NOUVEAUX CLIENTS"):
+            if st.button("DETECTER LES NOUVEAUX CLIENTS"):
                 with st.spinner("Analyse en cours..."):
                     descriptions = df_nouveaux['Descriptions'].tolist()
                     nouveaux     = detecter_nouveaux_clients(descriptions)
 
                 if not nouveaux:
-                    st.success("✅ Aucun nouveau client détecté !")
+                    st.success("Aucun nouveau client detecte !")
                 else:
-                    st.error(f"🆕 {len(nouveaux)} nouveau(x) client(s) détecté(s) !")
+                    st.error(f"{len(nouveaux)} nouveau(x) client(s) detecte(s) !")
                     df_nouveaux_result = pd.DataFrame(nouveaux)
                     st.dataframe(df_nouveaux_result)
 
                     st.download_button(
-                        label="📥 Télécharger les nouveaux clients (.xlsx)",
+                        label="Telecharger les nouveaux clients (.xlsx)",
                         data=convertir_excel(df_nouveaux_result),
                         file_name="nouveaux_clients.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
