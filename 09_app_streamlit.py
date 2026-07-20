@@ -108,43 +108,46 @@ def nettoyer_nom(nom):
 
 
 def calculer_features_paire(nom1, nom2):
-    lev = fuzz.ratio(nom1, nom2) / 100
+    lev      = fuzz.ratio(nom1, nom2) / 100
     tok_sort = fuzz.token_sort_ratio(nom1, nom2) / 100
-    tok_set = fuzz.token_set_ratio(nom1, nom2) / 100
-    partial = fuzz.partial_ratio(nom1, nom2) / 100
+    tok_set  = fuzz.token_set_ratio(nom1, nom2) / 100
+    partial  = fuzz.partial_ratio(nom1, nom2) / 100
     diff_len = abs(len(nom1) - len(nom2)) / max(len(nom1), len(nom2), 1)
-    mots1 = set(nom1.split())
-    mots2 = set(nom2.split())
-    total_mots = len(mots1.union(mots2))
-    jaccard = len(mots1.intersection(mots2)) / total_mots if total_mots > 0 else 0
-    v1 = vectorizer.transform([nom1])
-    v2 = vectorizer.transform([nom2])
-    cosine = (v1 * v2.T).toarray()[0][0]
+    mots1    = set(nom1.split())
+    mots2    = set(nom2.split())
+    total    = len(mots1.union(mots2))
+    jaccard  = len(mots1.intersection(mots2)) / total if total > 0 else 0
+    v1       = vectorizer.transform([nom1])
+    v2       = vectorizer.transform([nom2])
+    cosine   = (v1 * v2.T).toarray()[0][0]
     return [lev, tok_sort, tok_set, partial, diff_len, jaccard, cosine]
 
 
 def harmoniser_nom(nom_inconnu, seuil=70):
-    nom_clean = nettoyer_nom(nom_inconnu)
+    nom_clean         = nettoyer_nom(nom_inconnu)
     meilleur_officiel = None
-    meilleure_proba = 0
+    meilleure_proba   = 0
+
     for nom_ref in noms_officiels_list:
         score_rapide = fuzz.token_set_ratio(nom_clean, nom_ref)
         if score_rapide > seuil:
             features = calculer_features_paire(nom_clean, nom_ref)
-            proba = modele.predict_proba([features])[0][1]
+            proba    = modele.predict_proba([features])[0][1]
             if proba > meilleure_proba:
-                meilleure_proba = proba
-                mask = noms_officiels['nom_clean'] == nom_ref
+                meilleure_proba   = proba
+                mask              = noms_officiels['nom_clean'] == nom_ref
                 meilleur_officiel = noms_officiels[mask]['Nom_chargeurs'].values[0]
+
     if meilleur_officiel is None:
         return nom_inconnu, 0.0
+
     return meilleur_officiel, round(meilleure_proba * 100, 2)
 
 
 def detecter_nouveaux_clients(descriptions, seuil_apparitions=5):
     noms_clean = [nettoyer_nom(n) for n in descriptions if pd.notna(n)]
-    compteur = Counter(noms_clean)
-    nouveaux = []
+    compteur   = Counter(noms_clean)
+    nouveaux   = []
     for nom, count in compteur.items():
         if count >= seuil_apparitions:
             meilleur_score = max(
@@ -155,7 +158,7 @@ def detecter_nouveaux_clients(descriptions, seuil_apparitions=5):
                 nouveaux.append({
                     'Nom détecté': nom,
                     'Apparitions': count,
-                    'Statut': '🆕 Nouveau client potentiel'
+                    'Statut'     : '🆕 Nouveau client potentiel'
                 })
     return nouveaux
 
@@ -202,13 +205,25 @@ with tab1:
         else:
             with st.spinner("Recherche en cours..."):
                 nom_harmonise, confiance = harmoniser_nom(nom_saisi)
+
+            if confiance >= 90:
+                niveau = "Très élevé ✅"
+            elif confiance >= 75:
+                niveau = "Élevé 🟢"
+            elif confiance >= 60:
+                niveau = "Moyen 🟡"
+            elif confiance > 0:
+                niveau = "Faible 🔴"
+            else:
+                niveau = "Non trouvé ❌"
+
             st.markdown(f"""
                 <div class="resultat">
                     <h3>✅ {nom_harmonise}</h3>
-                    <p>Confiance : {confiance}%</p>
+                    <p>Confiance : {confiance}% — {niveau}</p>
                 </div>
             """, unsafe_allow_html=True)
-            st.success(f"'{nom_saisi}'  →  '{nom_harmonise}'  ({confiance}%)")
+            st.success(f"'{nom_saisi}'  →  '{nom_harmonise}'  ({confiance}% — {niveau})")
 
 
 # ══════════════════════════════════════════
@@ -219,7 +234,6 @@ with tab2:
     st.markdown("Le fichier doit contenir une colonne **Descriptions**")
     st.markdown("---")
 
-    # Initialiser session state
     if 'nb_lignes_choisi' not in st.session_state:
         st.session_state.nb_lignes_choisi = 100
     if 'df_charge' not in st.session_state:
@@ -244,30 +258,23 @@ with tab2:
 
             st.markdown("#### Choisissez le nombre de lignes à traiter :")
 
-            # Boutons de sélection rapide
             col1, col2, col3, col4, col5 = st.columns(5)
-
             with col1:
                 if st.button("100 lignes", key="b100"):
                     st.session_state.nb_lignes_choisi = min(100, total_lignes)
-
             with col2:
                 if st.button("500 lignes", key="b500"):
                     st.session_state.nb_lignes_choisi = min(500, total_lignes)
-
             with col3:
                 if st.button("1000 lignes", key="b1000"):
                     st.session_state.nb_lignes_choisi = min(1000, total_lignes)
-
             with col4:
                 if st.button("5000 lignes", key="b5000"):
                     st.session_state.nb_lignes_choisi = min(5000, total_lignes)
-
             with col5:
                 if st.button("⚡ Toutes", key="btoutes"):
                     st.session_state.nb_lignes_choisi = total_lignes
 
-            # Slider pour choisir précisément
             nb_lignes = st.slider(
                 "Ou ajustez avec le curseur :",
                 min_value=1,
@@ -275,31 +282,42 @@ with tab2:
                 value=st.session_state.nb_lignes_choisi,
                 key="slider_lignes"
             )
-
-            # Synchroniser session state avec slider
             st.session_state.nb_lignes_choisi = nb_lignes
-
             st.info(f"📊 **{nb_lignes} lignes** seront traitées sur {total_lignes}")
 
             if nb_lignes > 500:
-                st.warning(f"⚠️ {nb_lignes} lignes peut prendre plusieurs minutes. Soyez patient !")
+                st.warning(f"⚠️ {nb_lignes} lignes peut prendre plusieurs minutes.")
 
-            # Bouton Harmoniser
             if st.button("⚡ HARMONISER LE FICHIER", key="btn_fichier"):
-                df_traiter = df_charge.head(nb_lignes)
+                df_traiter   = df_charge.head(nb_lignes)
                 descriptions = df_traiter['Descriptions'].tolist()
-                total = len(descriptions)
+                total        = len(descriptions)
 
                 resultats = []
-                barre = st.progress(0)
-                texte = st.empty()
+                barre     = st.progress(0)
+                texte     = st.empty()
 
                 for i, nom in enumerate(descriptions):
-                    nom_harmonise, _ = harmoniser_nom(str(nom))
+                    nom_harmonise, confiance = harmoniser_nom(str(nom))
+
+                    if confiance >= 90:
+                        niveau = "Très élevé ✅"
+                    elif confiance >= 75:
+                        niveau = "Élevé 🟢"
+                    elif confiance >= 60:
+                        niveau = "Moyen 🟡"
+                    elif confiance > 0:
+                        niveau = "Faible 🔴"
+                    else:
+                        niveau = "Non trouvé ❌"
+
                     resultats.append({
-                        'Descriptions': nom,
-                        'Nom_harmonisé': nom_harmonise
+                        'Description originale': nom,
+                        'Nom harmonisé'        : nom_harmonise,
+                        'Confiance (%)'        : confiance,
+                        'Niveau de confiance'  : niveau,
                     })
+
                     progression = int((i + 1) / total * 100)
                     barre.progress(progression)
                     texte.text(f"Traitement : {i+1}/{total} ({progression}%)")
@@ -307,7 +325,6 @@ with tab2:
                 st.session_state.df_resultat = pd.DataFrame(resultats)
                 st.success("✅ Harmonisation terminée !")
 
-            # Afficher résultats si disponibles
             if st.session_state.df_resultat is not None:
                 st.markdown("#### Aperçu du résultat :")
                 st.dataframe(st.session_state.df_resultat.head(10))
@@ -349,7 +366,7 @@ with tab3:
             if st.button("🔍 DÉTECTER LES NOUVEAUX CLIENTS"):
                 with st.spinner("Analyse en cours..."):
                     descriptions = df_nouveaux['Descriptions'].tolist()
-                    nouveaux = detecter_nouveaux_clients(descriptions)
+                    nouveaux     = detecter_nouveaux_clients(descriptions)
 
                 if not nouveaux:
                     st.success("✅ Aucun nouveau client détecté !")
