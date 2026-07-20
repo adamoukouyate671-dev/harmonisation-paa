@@ -60,9 +60,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ============================================================
-# CHARGEMENT DU MODELE
-# ============================================================
 @st.cache_resource
 def charger_modele():
     with open("modele_random_forest.pkl", 'rb') as f:
@@ -84,9 +81,6 @@ modele = charger_modele()
 df_base, vectorizer, noms_officiels, noms_officiels_list = charger_base()
 
 
-# ============================================================
-# FONCTIONS
-# ============================================================
 def nettoyer_nom(nom):
     if pd.isna(nom) or nom == "":
         return ""
@@ -142,6 +136,19 @@ def harmoniser_nom(nom_inconnu, seuil=70):
         return nom_inconnu, 0.0
 
     return meilleur_officiel, round(meilleure_proba * 100, 2)
+
+
+def niveau_confiance(confiance):
+    if confiance >= 90:
+        return "Très élevé ✅"
+    elif confiance >= 75:
+        return "Élevé 🟢"
+    elif confiance >= 60:
+        return "Moyen 🟡"
+    elif confiance > 0:
+        return "Faible 🔴"
+    else:
+        return "Non trouvé ❌"
 
 
 def detecter_nouveaux_clients(descriptions, seuil_apparitions=5):
@@ -205,17 +212,7 @@ with tab1:
         else:
             with st.spinner("Recherche en cours..."):
                 nom_harmonise, confiance = harmoniser_nom(nom_saisi)
-
-            if confiance >= 90:
-                niveau = "Très élevé ✅"
-            elif confiance >= 75:
-                niveau = "Élevé 🟢"
-            elif confiance >= 60:
-                niveau = "Moyen 🟡"
-            elif confiance > 0:
-                niveau = "Faible 🔴"
-            else:
-                niveau = "Non trouvé ❌"
+            niveau = niveau_confiance(confiance)
 
             st.markdown(f"""
                 <div class="resultat">
@@ -236,8 +233,6 @@ with tab2:
 
     if 'nb_lignes_choisi' not in st.session_state:
         st.session_state.nb_lignes_choisi = 100
-    if 'df_charge' not in st.session_state:
-        st.session_state.df_charge = None
     if 'df_resultat' not in st.session_state:
         st.session_state.df_resultat = None
 
@@ -248,7 +243,6 @@ with tab2:
 
     if fichier:
         df_charge = pd.read_excel(fichier)
-        st.session_state.df_charge = df_charge
 
         if 'Descriptions' not in df_charge.columns:
             st.error("❌ Le fichier doit contenir une colonne 'Descriptions' !")
@@ -299,25 +293,12 @@ with tab2:
 
                 for i, nom in enumerate(descriptions):
                     nom_harmonise, confiance = harmoniser_nom(str(nom))
-
-                    if confiance >= 90:
-                        niveau = "Très élevé ✅"
-                    elif confiance >= 75:
-                        niveau = "Élevé 🟢"
-                    elif confiance >= 60:
-                        niveau = "Moyen 🟡"
-                    elif confiance > 0:
-                        niveau = "Faible 🔴"
-                    else:
-                        niveau = "Non trouvé ❌"
-
                     resultats.append({
                         'Description originale': nom,
                         'Nom harmonisé'        : nom_harmonise,
                         'Confiance (%)'        : confiance,
-                        'Niveau de confiance'  : niveau,
+                        'Niveau de confiance'  : niveau_confiance(confiance),
                     })
-
                     progression = int((i + 1) / total * 100)
                     barre.progress(progression)
                     texte.text(f"Traitement : {i+1}/{total} ({progression}%)")
