@@ -130,7 +130,7 @@ def harmoniser_nom(nom_inconnu, seuil=70):
             if proba > meilleure_proba:
                 meilleure_proba   = proba
                 mask              = noms_officiels['nom_clean'] == nom_ref
-                meilleur_officiel = noms_oficiels[mask]['Nom_chargeurs'].values[0]
+                meilleur_officiel = noms_officiels[mask]['Nom_chargeurs'].values[0]
 
     if meilleur_officiel is None:
         return nom_inconnu, 0.0
@@ -222,8 +222,6 @@ with tab2:
     st.markdown("Le fichier doit contenir une colonne **Descriptions**")
     st.markdown("---")
 
-    if 'nb_lignes_choisi' not in st.session_state:
-        st.session_state.nb_lignes_choisi = 100
     if 'df_resultat' not in st.session_state:
         st.session_state.df_resultat = None
 
@@ -243,35 +241,28 @@ with tab2:
 
             st.markdown("#### Choisissez le nombre de lignes a traiter :")
 
-            col1, col2, col3, col4, col5 = st.columns(5)
+            col1, col2, col3, col4 = st.columns(4)
             with col1:
-                if st.button("100 lignes", key="b100"):
-                    st.session_state.nb_lignes_choisi = min(100, total_lignes)
+                if st.button("100 lignes"):
+                    st.session_state.nb_lignes = 100
             with col2:
-                if st.button("500 lignes", key="b500"):
-                    st.session_state.nb_lignes_choisi = min(500, total_lignes)
+                if st.button("500 lignes"):
+                    st.session_state.nb_lignes = 500
             with col3:
-                if st.button("1000 lignes", key="b1000"):
-                    st.session_state.nb_lignes_choisi = min(1000, total_lignes)
+                if st.button("1000 lignes"):
+                    st.session_state.nb_lignes = 1000
             with col4:
-                if st.button("5000 lignes", key="b5000"):
-                    st.session_state.nb_lignes_choisi = min(5000, total_lignes)
-            with col5:
-                if st.button("Toutes", key="btoutes"):
-                    st.session_state.nb_lignes_choisi = total_lignes
+                if st.button("Toutes les lignes"):
+                    st.session_state.nb_lignes = total_lignes
 
-            nb_lignes = st.slider(
-                "Ou ajustez avec le curseur :",
+            nb_lignes = st.number_input(
+                "Ou entrez un nombre personalise :",
                 min_value=1,
                 max_value=total_lignes,
-                value=st.session_state.nb_lignes_choisi,
-                key="slider_lignes"
+                value=min(100, total_lignes)
             )
-            st.session_state.nb_lignes_choisi = nb_lignes
-            st.info(f"{nb_lignes} lignes seront traitees sur {total_lignes}")
 
-            if nb_lignes > 500:
-                st.warning(f"{nb_lignes} lignes peut prendre plusieurs minutes.")
+            st.info(f"{nb_lignes} lignes seront traitees")
 
             if st.button("HARMONISER LE FICHIER", key="btn_fichier"):
                 df_traiter   = df_charge.head(nb_lignes)
