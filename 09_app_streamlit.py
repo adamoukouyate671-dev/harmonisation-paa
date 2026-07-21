@@ -84,21 +84,33 @@ df_base, vectorizer, noms_officiels, noms_officiels_list = charger_base()
 def nettoyer_nom(nom):
     if pd.isna(nom) or nom == "":
         return ""
-    nom = str(nom)
-    nom = nom.lower()
-    nom = nom.replace("s.a.r.l.", "sarl")
-    nom = nom.replace("s.a.r.l", "sarl")
-    nom = nom.replace("s.a.", "sa")
-    nom = nom.replace("s.a", "sa")
-    nom = nom.replace("cie.", "cie")
-    nom = nom.replace("gie.", "gie")
-    nom = nom.replace("b.p.", "bp")
-    nom = nom.replace("b.p", "bp")
+    nom = str(nom).lower()
+    nom = nom.replace("s.a.r.l.", "sarl").replace("s.a.r.l", "sarl")
+    nom = nom.replace("s.a.", "sa").replace("s.a", "sa")
+    nom = nom.replace("cie.", "cie").replace("gie.", "gie")
+    nom = nom.replace("b.p.", "bp").replace("b.p", "bp")
     nom = re.sub(r'[^\w\s]', ' ', nom)
     nom = unidecode(nom)
     nom = re.sub(r'\s+', ' ', nom)
-    nom = nom.strip()
-    return nom
+    return nom.strip()
+
+
+def nettoyer_avance(nom):
+    nom = nettoyer_nom(nom)
+    # Supprimer BP + numéro
+    nom = re.sub(r'b\s*p\s*\d+', '', nom)
+    # Supprimer numéros de téléphone
+    nom = re.sub(r'\b\d{2}\s\d{2}\s\d{2}\s\d{2}\b', '', nom)
+    # Supprimer codes postaux
+    nom = re.sub(r'\b\d{5}\b', '', nom)
+    # Supprimer villes et pays
+    nom = re.sub(r'\b(abidjan|ivory coast|cote d ivoire)\b', '', nom)
+    # Supprimer prefixes parasites
+    nom = re.sub(r'^(ets|etablissements?|etabliessements?|group|groupe)\s+', '', nom)
+    # Supprimer noms de personnes apres p/c
+    nom = re.sub(r'p\s*/\s*c\s+\w+.*$', '', nom)
+    nom = re.sub(r'\s+', ' ', nom)
+    return nom.strip()
 
 
 def calculer_features_paire(nom1, nom2):
@@ -117,8 +129,8 @@ def calculer_features_paire(nom1, nom2):
     return [lev, tok_sort, tok_set, partial, diff_len, jaccard, cosine]
 
 
-def harmoniser_nom(nom_inconnu, seuil=70):
-    nom_clean         = nettoyer_nom(nom_inconnu)
+def harmoniser_nom(nom_inconnu, seuil=60):
+    nom_clean         = nettoyer_avance(nom_inconnu)
     meilleur_officiel = None
     meilleure_proba   = 0
 
@@ -152,7 +164,7 @@ def niveau_confiance(confiance):
 
 
 def detecter_nouveaux_clients(descriptions, seuil_apparitions=5):
-    noms_clean = [nettoyer_nom(n) for n in descriptions if pd.notna(n)]
+    noms_clean = [nettoyer_avance(n) for n in descriptions if pd.notna(n)]
     compteur   = Counter(noms_clean)
     nouveaux   = []
     for nom, count in compteur.items():
@@ -161,7 +173,7 @@ def detecter_nouveaux_clients(descriptions, seuil_apparitions=5):
                 [fuzz.token_set_ratio(nom, ref) for ref in noms_officiels_list[:500]],
                 default=0
             )
-            if meilleur_score < 70:
+            if meilleur_score < 60:
                 nouveaux.append({
                     'Nom detecte': nom,
                     'Apparitions': count,
