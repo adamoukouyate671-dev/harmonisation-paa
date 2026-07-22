@@ -45,8 +45,8 @@ st.markdown("""
         border-radius: 0 0 16px 16px;
     }
     .logo-ring {
-        width: 190px;
-        height: 190px;
+        width: 220px;
+        height: 220px;
         border-radius: 50%;
         border: 3px solid #C8A96E;
         display: flex;
@@ -55,7 +55,8 @@ st.markdown("""
         margin: 0 auto 24px auto;
         background: radial-gradient(circle, #1B2B3B 0%, #0D1B2A 100%);
         box-shadow: 0 0 40px rgba(200,169,110,0.25), 0 0 80px rgba(74,144,217,0.1);
-        padding: 12px;
+        overflow: hidden;
+        padding: 0;
     }
     .header-eyebrow {
         font-family: 'Inter', sans-serif;
@@ -133,7 +134,6 @@ st.markdown("""
     .resultat h3 { color: #C8A96E; margin: 0; font-family: 'Inter', sans-serif; font-size: 20px; }
     .resultat p  { color: #8FA8C0; margin: 8px 0 0 0; font-family: 'Inter', sans-serif; }
 
-    /* Boutons rouges conservés */
     .stButton button {
         background: linear-gradient(135deg, #1A5276 0%, #2E86C1 100%);
         color: #F0F4F8;
@@ -150,8 +150,6 @@ st.markdown("""
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(74,144,217,0.3);
     }
-
-    /* Onglets */
     .stTabs [data-baseweb="tab"] {
         background-color: #1B2B3B;
         color: #8FA8C0;
@@ -166,54 +164,16 @@ st.markdown("""
         font-weight: 600 !important;
         border: none !important;
     }
-
-    /* Inputs */
     .stTextInput input {
         background-color: #1B2B3B !important;
         color: #F0F4F8 !important;
         border: 1px solid #1E3A5F !important;
         border-radius: 4px !important;
-        font-family: 'Inter', sans-serif !important;
     }
     .stTextInput input:focus {
         border-color: #4A90D9 !important;
         box-shadow: 0 0 0 2px rgba(74,144,217,0.2) !important;
     }
-
-    /* File uploader */
-    .stFileUploader {
-        background-color: #1B2B3B !important;
-        border: 1px dashed #1E3A5F !important;
-        border-radius: 8px !important;
-    }
-
-    /* Info/success/warning */
-    .stSuccess {
-        background-color: #1B2B3B !important;
-        border-left: 4px solid #4A90D9 !important;
-        color: #F0F4F8 !important;
-    }
-    .stInfo {
-        background-color: #1B2B3B !important;
-        border-left: 4px solid #C8A96E !important;
-        color: #8FA8C0 !important;
-    }
-
-    /* Dataframe */
-    .stDataFrame {
-        background-color: #1B2B3B !important;
-        border: 1px solid #1E3A5F !important;
-        border-radius: 8px !important;
-    }
-
-    /* Number input */
-    .stNumberInput input {
-        background-color: #1B2B3B !important;
-        color: #F0F4F8 !important;
-        border: 1px solid #1E3A5F !important;
-    }
-
-    /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #0D1B2A; }
     ::-webkit-scrollbar-thumb { background: #1E3A5F; border-radius: 3px; }
@@ -339,7 +299,7 @@ def convertir_excel(df):
 # EN-TÊTE
 # ============================================================
 if logo_b64:
-    logo_img = f'<img src="data:image/png;base64,{logo_b64}" style="width:155px;height:155px;object-fit:contain;"/>'
+    logo_img = f'<img src="data:image/png;base64,{logo_b64}" style="width:220px;height:220px;object-fit:cover;border-radius:50%;"/>'
 else:
     logo_img = '<div style="font-size:80px;">⚓</div>'
 
