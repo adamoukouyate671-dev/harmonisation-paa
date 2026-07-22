@@ -26,9 +26,12 @@ logo_b64 = get_logo_base64()
 
 st.markdown("""
     <style>
-    .main { background-color: #0a0a0a; }
-    .stApp { background-color: #0a0a0a; }
-    h1, h2, h3 { color: #ffffff; }
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap');
+
+    .main { background-color: #0D1B2A; }
+    .stApp { background-color: #0D1B2A; }
+    h1, h2, h3 { color: #F0F4F8; font-family: 'Inter', sans-serif; }
+
     .header-zone {
         display: flex;
         flex-direction: column;
@@ -36,48 +39,57 @@ st.markdown("""
         justify-content: center;
         padding: 40px 20px 32px 20px;
         text-align: center;
-        border-bottom: 1px solid #1f1f1f;
+        border-bottom: 1px solid #1E3A5F;
         margin-bottom: 32px;
+        background: linear-gradient(180deg, #0D1B2A 0%, #1B2B3B 100%);
+        border-radius: 0 0 16px 16px;
     }
     .logo-ring {
-        width: 180px;
-        height: 180px;
+        width: 190px;
+        height: 190px;
         border-radius: 50%;
-        border: 3px solid #c8a96e;
+        border: 3px solid #C8A96E;
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto 24px auto;
-        background: radial-gradient(circle, #1a1a2e 0%, #0a0a0a 100%);
-        box-shadow: 0 0 40px rgba(200,169,110,0.2);
+        background: radial-gradient(circle, #1B2B3B 0%, #0D1B2A 100%);
+        box-shadow: 0 0 40px rgba(200,169,110,0.25), 0 0 80px rgba(74,144,217,0.1);
         padding: 12px;
     }
     .header-eyebrow {
+        font-family: 'Inter', sans-serif;
         font-size: 11px;
         font-weight: 600;
         letter-spacing: 4px;
         text-transform: uppercase;
-        color: #c8a96e;
+        color: #C8A96E;
         margin-bottom: 12px;
     }
     .header-titre {
+        font-family: 'Playfair Display', Georgia, serif;
         font-size: clamp(28px, 4vw, 48px);
         font-weight: 700;
-        color: #ffffff;
+        color: #F0F4F8;
         margin-bottom: 6px;
         line-height: 1.2;
     }
     .header-sous-titre {
-        font-size: clamp(16px, 2vw, 22px);
-        color: #c8a96e;
+        font-family: 'Inter', sans-serif;
+        font-size: clamp(14px, 2vw, 18px);
+        color: #4A90D9;
         margin-bottom: 16px;
+        font-weight: 300;
+        letter-spacing: 1px;
     }
     .header-desc {
+        font-family: 'Inter', sans-serif;
         font-size: 15px;
-        color: #999999;
+        color: #8FA8C0;
         max-width: 520px;
         line-height: 1.7;
         margin: 0 auto 28px auto;
+        font-weight: 300;
     }
     .stats-bar {
         display: flex;
@@ -85,58 +97,127 @@ st.markdown("""
         justify-content: center;
         margin-top: 24px;
         padding-top: 24px;
-        border-top: 1px solid #1f1f1f;
+        border-top: 1px solid #1E3A5F;
         width: 100%;
     }
     .stat-item { text-align: center; }
     .stat-number {
-        font-size: 28px;
+        font-family: 'Playfair Display', serif;
+        font-size: 30px;
         font-weight: 700;
-        color: #c8a96e;
+        color: #C8A96E;
         display: block;
     }
     .stat-label {
+        font-family: 'Inter', sans-serif;
         font-size: 10px;
         letter-spacing: 2px;
         text-transform: uppercase;
-        color: #555555;
+        color: #8FA8C0;
         margin-top: 4px;
         display: block;
     }
     .divider-line {
         width: 1px;
         height: 40px;
-        background: #2a2a2a;
+        background: #1E3A5F;
         margin: auto 0;
     }
     .resultat {
-        background-color: #1a1a1a;
-        padding: 20px;
-        border-left: 4px solid #c8a96e;
+        background: linear-gradient(135deg, #1B2B3B 0%, #162436 100%);
+        padding: 20px 24px;
+        border-left: 4px solid #C8A96E;
         border-radius: 4px;
         margin-top: 15px;
     }
-    .resultat h3 { color: #c8a96e; margin: 0; }
-    .resultat p  { color: #cccccc; margin: 5px 0 0 0; }
+    .resultat h3 { color: #C8A96E; margin: 0; font-family: 'Inter', sans-serif; font-size: 20px; }
+    .resultat p  { color: #8FA8C0; margin: 8px 0 0 0; font-family: 'Inter', sans-serif; }
+
+    /* Boutons rouges conservés */
     .stButton button {
-        background-color: #ff1a1a;
-        color: white;
+        background: linear-gradient(135deg, #1A5276 0%, #2E86C1 100%);
+        color: #F0F4F8;
         border: none;
-        border-radius: 3px;
-        font-weight: bold;
+        border-radius: 4px;
+        font-weight: 600;
         padding: 10px 20px;
+        font-family: 'Inter', sans-serif;
+        letter-spacing: 0.5px;
+        transition: all 0.2s ease;
     }
-    .stButton button:hover { background-color: #ff4d4d; }
+    .stButton button:hover {
+        background: linear-gradient(135deg, #2E86C1 0%, #4A90D9 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(74,144,217,0.3);
+    }
+
+    /* Onglets */
     .stTabs [data-baseweb="tab"] {
-        background-color: #1a1a1a;
-        color: #aaaaaa;
+        background-color: #1B2B3B;
+        color: #8FA8C0;
         border-radius: 4px 4px 0 0;
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        border: 1px solid #1E3A5F;
     }
     .stTabs [aria-selected="true"] {
-        background-color: #c8a96e !important;
-        color: #0a0a0a !important;
+        background: linear-gradient(135deg, #1A5276 0%, #2E86C1 100%) !important;
+        color: #F0F4F8 !important;
         font-weight: 600 !important;
+        border: none !important;
     }
+
+    /* Inputs */
+    .stTextInput input {
+        background-color: #1B2B3B !important;
+        color: #F0F4F8 !important;
+        border: 1px solid #1E3A5F !important;
+        border-radius: 4px !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+    .stTextInput input:focus {
+        border-color: #4A90D9 !important;
+        box-shadow: 0 0 0 2px rgba(74,144,217,0.2) !important;
+    }
+
+    /* File uploader */
+    .stFileUploader {
+        background-color: #1B2B3B !important;
+        border: 1px dashed #1E3A5F !important;
+        border-radius: 8px !important;
+    }
+
+    /* Info/success/warning */
+    .stSuccess {
+        background-color: #1B2B3B !important;
+        border-left: 4px solid #4A90D9 !important;
+        color: #F0F4F8 !important;
+    }
+    .stInfo {
+        background-color: #1B2B3B !important;
+        border-left: 4px solid #C8A96E !important;
+        color: #8FA8C0 !important;
+    }
+
+    /* Dataframe */
+    .stDataFrame {
+        background-color: #1B2B3B !important;
+        border: 1px solid #1E3A5F !important;
+        border-radius: 8px !important;
+    }
+
+    /* Number input */
+    .stNumberInput input {
+        background-color: #1B2B3B !important;
+        color: #F0F4F8 !important;
+        border: 1px solid #1E3A5F !important;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0D1B2A; }
+    ::-webkit-scrollbar-thumb { background: #1E3A5F; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4A90D9; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -255,19 +336,17 @@ def convertir_excel(df):
 
 
 # ============================================================
-# EN-TÊTE AVEC LOGO
+# EN-TÊTE
 # ============================================================
 if logo_b64:
-    logo_img = f'<img src="data:image/png;base64,{logo_b64}" style="width:150px;height:150px;object-fit:contain;"/>'
+    logo_img = f'<img src="data:image/png;base64,{logo_b64}" style="width:155px;height:155px;object-fit:contain;"/>'
 else:
     logo_img = '<div style="font-size:80px;">⚓</div>'
 
 st.markdown(f"""
 <div class="header-zone">
-    <div class="logo-ring">
-        {logo_img}
-    </div>
-    <p class="header-eyebrow">Direction des Études Économiques, de la Stratégie et de la Planification</p>
+    <div class="logo-ring">{logo_img}</div>
+    <p class="header-eyebrow">Direction des Études Économiques · Stratégie · Planification</p>
     <h1 class="header-titre">Port Autonome d'Abidjan</h1>
     <h2 class="header-sous-titre">Système Intelligent d'Harmonisation des Chargeurs</h2>
     <p class="header-desc">
