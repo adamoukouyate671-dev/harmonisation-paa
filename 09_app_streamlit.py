@@ -373,7 +373,7 @@ with tab2:
     if 'df_resultat' not in st.session_state:
         st.session_state.df_resultat = None
     if 'nb_lignes' not in st.session_state:
-        st.session_state.nb_lignes = 100
+        st.session_state.nb_lignes = 50
 
     fichier = st.file_uploader("Chargez votre fichier Excel", type=["xlsx", "xls"])
 
@@ -384,31 +384,30 @@ with tab2:
         else:
             total_lignes = len(df_charge)
             st.success(f"Fichier charge : {total_lignes} lignes detectees")
+
+            st.warning("⚠️ Cette application web traite au maximum 100 lignes. Pour les gros volumes, utilisez l'application desktop.")
+
             st.markdown("#### Choisissez le nombre de lignes a traiter :")
 
-            col1, col2, col3, col4 = st.columns(4)
+            col1, col2, col3 = st.columns(3)
             with col1:
+                if st.button("25 lignes"):
+                    st.session_state.nb_lignes = min(25, total_lignes)
+                    st.rerun()
+            with col2:
+                if st.button("50 lignes"):
+                    st.session_state.nb_lignes = min(50, total_lignes)
+                    st.rerun()
+            with col3:
                 if st.button("100 lignes"):
                     st.session_state.nb_lignes = min(100, total_lignes)
                     st.rerun()
-            with col2:
-                if st.button("500 lignes"):
-                    st.session_state.nb_lignes = min(500, total_lignes)
-                    st.rerun()
-            with col3:
-                if st.button("1000 lignes"):
-                    st.session_state.nb_lignes = min(1000, total_lignes)
-                    st.rerun()
-            with col4:
-                if st.button("Toutes les lignes"):
-                    st.session_state.nb_lignes = total_lignes
-                    st.rerun()
 
             nb_lignes = st.number_input(
-                "Ou entrez un nombre personalise :",
+                "Ou entrez un nombre (max 100) :",
                 min_value=1,
-                max_value=total_lignes,
-                value=st.session_state.nb_lignes
+                max_value=min(100, total_lignes),
+                value=min(st.session_state.nb_lignes, 100)
             )
             st.session_state.nb_lignes = nb_lignes
             st.info(f"{nb_lignes} lignes seront traitees")
