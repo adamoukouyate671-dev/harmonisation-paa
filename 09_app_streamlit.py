@@ -372,6 +372,8 @@ with tab2:
 
     if 'df_resultat' not in st.session_state:
         st.session_state.df_resultat = None
+    if 'nb_lignes' not in st.session_state:
+        st.session_state.nb_lignes = 100
 
     fichier = st.file_uploader("Chargez votre fichier Excel", type=["xlsx", "xls"])
 
@@ -387,26 +389,32 @@ with tab2:
             col1, col2, col3, col4 = st.columns(4)
             with col1:
                 if st.button("100 lignes"):
-                    st.session_state.nb_lignes = 100
+                    st.session_state.nb_lignes = min(100, total_lignes)
+                    st.rerun()
             with col2:
                 if st.button("500 lignes"):
-                    st.session_state.nb_lignes = 500
+                    st.session_state.nb_lignes = min(500, total_lignes)
+                    st.rerun()
             with col3:
                 if st.button("1000 lignes"):
-                    st.session_state.nb_lignes = 1000
+                    st.session_state.nb_lignes = min(1000, total_lignes)
+                    st.rerun()
             with col4:
                 if st.button("Toutes les lignes"):
                     st.session_state.nb_lignes = total_lignes
+                    st.rerun()
 
             nb_lignes = st.number_input(
                 "Ou entrez un nombre personalise :",
-                min_value=1, max_value=total_lignes,
-                value=min(100, total_lignes)
+                min_value=1,
+                max_value=total_lignes,
+                value=st.session_state.nb_lignes
             )
+            st.session_state.nb_lignes = nb_lignes
             st.info(f"{nb_lignes} lignes seront traitees")
 
             if st.button("HARMONISER LE FICHIER", key="btn_fichier"):
-                df_traiter   = df_charge.head(nb_lignes)
+                df_traiter   = df_charge.head(st.session_state.nb_lignes)
                 descriptions = df_traiter['Descriptions'].tolist()
                 total        = len(descriptions)
                 resultats    = []
